@@ -1,17 +1,33 @@
 const Stripe = require("stripe");
+const plans = require("./constants/plans");
+
+const STRIPE_API_KEY = 'sk_test_4eC39HqLyjWDarjtT1zdp7dc';
 
 const stripe = Stripe(STRIPE_API_KEY, {
   // Cloudflare Workers use the Fetch API for their API requests.
   httpClient: Stripe.createFetchHttpClient()
 });
 
+// {
+//   "email": "doctorrosen2016@gmail.com",
+//   "name": "Petrov Pavel",
+//   "plan": "basic",
+//   "referrer": "alexey_dolgikh",
+//   "url": "https://www.youtube.com/watch?v=YRL77Xp3FbM",
+//   "websiteType": "store"
+// }
+
+function checkPlan(plan) {
+  for (const key in plans) {
+    if (key == plan) {
+      return plans[key];
+    }
+  }
+}
+
 async function handleRequest(request) {
-  /*
-   * Sample checkout integration which redirects a customer to a checkout page
-   * for the specified line items.
-   *
-   * See https://stripe.com/docs/payments/accept-a-payment?integration=checkout.
-   */
+
+  // const cost = checkPlan(request.body.plan);
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
@@ -21,7 +37,7 @@ async function handleRequest(request) {
           product_data: {
             name: 'T-shirt',
           },
-          unit_amount: 2000,
+          unit_amount: 1200,
         },
         quantity: 1,
       },
@@ -30,11 +46,43 @@ async function handleRequest(request) {
     success_url: 'https://example.com/success',
     cancel_url: 'https://example.com/cancel',
   });
-
-  return Response.redirect(session.url, 303);
+  // return Response.redirect(session.url, 303);
+  return Response.json(request.body);
 };
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
 
+// /**
+//  * readRequestBody reads in the incoming request body
+//  * Use await readRequestBody(..) in an async function to get the string
+//  * @param {Request} request the incoming request to read from
+//  */
+
+// async function readRequestBody(request) {
+//   const { headers } = request;
+//   const contentType = headers.get('content-type') || '';
+
+//   if (contentType.includes('application/json')) {
+//     return JSON.stringify(await request.json());
+//   }
+// }
+
+
+
+// async function handleRequest(request) {
+//   const reqBody = await readRequestBody(request);
+//   const retBody = `The request body sent in was ${reqBody}`;
+//   return new Response(retBody);
+
+// }
+
+
+
+// addEventListener('fetch', event => {
+//   const { request } = event;
+//   if (request.method === 'POST') {
+//     return event.respondWith(handleRequest(request));
+//   }
+// });

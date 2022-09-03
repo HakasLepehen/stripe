@@ -1,6 +1,6 @@
 name = "my-stripe-worker"
 type = "javascript"
-account_id = ""
+account_id = "b959630fe3e524d39ac73fd45620e944"
 route = ""
 zone_id = ""
 usage_model = ""
