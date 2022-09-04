@@ -1,8 +1,8 @@
-name = "my-stripe-worker"
+name = "stripe-payment"
 type = "javascript"
-account_id = "b959630fe3e524d39ac73fd45620e944"
+account_id = "237c6be0a3e9d6148d78af6b18584948"
 route = ""
-zone_id = ""
+zone_id = "4686ed0c2b10af356fde32af68eb5084"
 usage_model = ""
 compatibility_flags = []
 compatibility_date = "2021-10-06"

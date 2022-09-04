@@ -1,7 +1,13 @@
 const Stripe = require("stripe");
-const plans = require("./constants/plans");
 
 const STRIPE_API_KEY = 'sk_test_4eC39HqLyjWDarjtT1zdp7dc';
+
+const plans = {
+  'start': 125,
+  'essential': 230,
+  'pro': 585,
+  'enterprise': 423
+}
 
 const stripe = Stripe(STRIPE_API_KEY, {
   // Cloudflare Workers use the Fetch API for their API requests.
@@ -17,7 +23,7 @@ const stripe = Stripe(STRIPE_API_KEY, {
 //   "websiteType": "store"
 // }
 
-function checkPlan(plan) {
+const checkPlan = (plan) => {
   for (const key in plans) {
     if (key == plan) {
       return plans[key];
@@ -27,7 +33,8 @@ function checkPlan(plan) {
 
 async function handleRequest(request) {
 
-  // const cost = checkPlan(request.body.plan);
+  const cost = request.body.plan;
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
@@ -37,17 +44,22 @@ async function handleRequest(request) {
           product_data: {
             name: 'T-shirt',
           },
-          unit_amount: 1200,
+          unit_amount: 300,
         },
         quantity: 1,
       },
     ],
     mode: 'payment',
-    success_url: 'https://example.com/success',
-    cancel_url: 'https://example.com/cancel',
+    success_url: 'https://eglote.com/basic',
+    cancel_url: 'https://eglote.com/pro',
   });
+  const json = JSON.stringify(request.body, null, 2);
   // return Response.redirect(session.url, 303);
-  return Response.json(request.body);
+  return Response(json, {
+    headers: {
+      'content-type': 'application/json;charset=UTF-8',
+    }
+  });
 };
 
 addEventListener('fetch', event => {
