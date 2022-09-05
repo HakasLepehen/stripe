@@ -3,10 +3,22 @@ const Stripe = require("stripe");
 const STRIPE_API_KEY = 'sk_test_4eC39HqLyjWDarjtT1zdp7dc';
 
 const plans = {
-  'start': 125,
-  'essential': 230,
-  'pro': 585,
-  'enterprise': 423
+  'start': {
+    price: 12500,
+    description: ''
+  },
+  'essential': {
+    price: 23000,
+    description: ''
+  },
+  'pro': {
+    price: 58500,
+    description: ''
+  },
+  'enterprise': {
+    price: 4230,
+    description: ''
+  }
 }
 
 const stripe = Stripe(STRIPE_API_KEY, {
@@ -24,16 +36,26 @@ const stripe = Stripe(STRIPE_API_KEY, {
 // }
 
 const checkPlan = (plan) => {
-  for (const key in plans) {
-    if (key == plan) {
-      return plans[key];
-    }
-  }
+      return plans[plan].price;
 }
 
 async function handleRequest(request) {
+  let body;
+  try {
+    body = await request.json();  
+  } catch (error) {
+    return new Response(`new Error ${error}`, {
+      status: 200,
+      headers: {
+        'content-type': 'text/plain',
+        'Access-Control-Allow-Origin': "*",
+        "Access-Control-Allow-Headers": "*"
+      }
+    })
+  }
+  
 
-  const cost = request.body.plan;
+  // const cost = request.body.plan;
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -42,9 +64,10 @@ async function handleRequest(request) {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'T-shirt',
+            name: 'Subscribe to Eglote Pro Annual',
           },
-          unit_amount: 300,
+          unit_amount: checkPlan(body.plan),
+          // unit_amount: checkPlan(body.plan),
         },
         quantity: 1,
       },
@@ -53,11 +76,12 @@ async function handleRequest(request) {
     success_url: 'https://eglote.com/basic',
     cancel_url: 'https://eglote.com/pro',
   });
-  const json = JSON.stringify(request.body, null, 2);
-  // return Response.redirect(session.url, 303);
-  return Response(json, {
+  return new Response(session.url.toString(), {
+    status: 200,
     headers: {
-      'content-type': 'application/json;charset=UTF-8',
+      'content-type': 'text/plain',
+      'Access-Control-Allow-Origin': "*",
+      "Access-Control-Allow-Headers": "*"
     }
   });
 };
@@ -65,36 +89,3 @@ async function handleRequest(request) {
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
-
-// /**
-//  * readRequestBody reads in the incoming request body
-//  * Use await readRequestBody(..) in an async function to get the string
-//  * @param {Request} request the incoming request to read from
-//  */
-
-// async function readRequestBody(request) {
-//   const { headers } = request;
-//   const contentType = headers.get('content-type') || '';
-
-//   if (contentType.includes('application/json')) {
-//     return JSON.stringify(await request.json());
-//   }
-// }
-
-
-
-// async function handleRequest(request) {
-//   const reqBody = await readRequestBody(request);
-//   const retBody = `The request body sent in was ${reqBody}`;
-//   return new Response(retBody);
-
-// }
-
-
-
-// addEventListener('fetch', event => {
-//   const { request } = event;
-//   if (request.method === 'POST') {
-//     return event.respondWith(handleRequest(request));
-//   }
-// });
